@@ -1,0 +1,36 @@
+
+# Grid Search
+# This code performs a grid search of the mtry hyper-parameter of the randomForest algorithm based on AUC values.
+
+# For every parameter value, the for loop constructs a data frame of the classifier's threshold and specificity.
+# From the data frame, the threshold value that is at a shortest distance from the point (0,1) is evaluated. This corresponds to the best possible AUC based on 
+# it being the closest to the perfect classifier (0,1).
+# For every run of the for-loop, it then appends a record in the RF_grid data frame corresponding to the mtry, threshold & AUC combinations.
+# The mtry corresponding to the highest value of AUC in the RF_grid data frame, corresponds to the hyper-parameter value with the best classifier performance.
+
+RF_grid = data.frame()
+
+# For loop for performing the grid search for the mtry parameter
+for (k in c(2, 4, 6, 8, 10, 12, 14, 16, 18, 20)) {
+  set.seed(123)
+  model_iter 			= randomForest(target ~ ., data = train, ntree = 200, nodesize = 25, mtry = k)
+  pred_iter  			= predict(model_iter, newdata = test, type = "prob")
+  
+  r_iter 				= roc(test$target, pred_iter[,2])
+  rdf_iter 			    = data.frame(r_iter$thresholds, r_iter$specificities)
+  colnames(rdf_iter) 	= c("threshold", "specificity")
+  
+  rdf_iter$distance 	= sqrt((rdf_iter$specificity - 1)**2 + rdf_iter$threshold**2)
+  threshold			    = rdf_iter$threshold[which.min(rdf_iter$distance)]
+  auc 				    = auc(r_iter)
+  
+  RF_grid  			    = rbind(RF_grid, c(k, threshold, auc))
+  print(k)
+}
+
+
+colnames(RF_grid) = c("mtry", "threshold", "auc")
+
+# Outputs the record corresponding to the max. value of AUC
+subset(RF_grid, auc == max(RF_grid$auc))
+
