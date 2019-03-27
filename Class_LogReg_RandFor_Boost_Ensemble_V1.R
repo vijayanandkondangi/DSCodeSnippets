@@ -149,21 +149,20 @@ pred4E = predict(boost4, test)
 
 pred5 = data.frame(ifelse(pred2E[,2]>threshold, 1, 0), ifelse(pred3E[,2]>threshold, 1, 0), ifelse(pred4E$prob[,2]>threshold, 1, 0))
 colnames(pred5) = c("pred2E", "pred3E", "pred4E")
-pred5$finalresult = pred5$pred2E
 
-for (i in nrow(pred5)) {
+for (i in seq(1, nrow(pred5), 1)) {
   i_classes = c(pred5[i, "pred2E"], pred5[i, "pred3E"], pred5[i, "pred4E"])
-  pred5[i, "finalresult"] = which.max(tabulate(match(i_classes, unique(i_classes))))
+  pred5[i, "finalresult"] = i_classes[which.max(tabulate(match(i_classes, unique(i_classes))))]
 }
 
 
-confusionMatrix(as.factor(pred5$finalresult), test$Personal.Loan)$overall["Accuracy"]
-# Accuracy: 0.993
+confusionMatrix(as.factor(pred5$finalresult), as.factor(test$Personal.Loan))$overall["Accuracy"]
+# Accuracy: 0.988
 
 table(as.factor(pred5$finalresult), test$Personal.Loan)
 #     0   1
-# 0 901   5
-# 1   2  92
+# 0 889   6
+# 1   6  99
 
 # On unseen data (test data set), for a threshold of 0.425, 
 # the model has performed very well; an Accuracy of 0.993 was obtained.
@@ -183,9 +182,10 @@ bestthreshold = 0
 for (threshold in seq(0, 0.6, 0.0001)) {
   pred5 = data.frame(ifelse(pred2E[,2]>threshold, 1, 0), ifelse(pred3E[,2]>threshold, 1, 0), ifelse(pred4E$prob[,2]>threshold, 1, 0))
   colnames(pred5) = c("pred2E", "pred3E", "pred4E")
-  pred5$finalresult = pred5$pred2E
-  i_classes = c(pred5[i, "pred2E"], pred5[i, "pred3E"], pred5[i, "pred4E"])
-  pred5[i, "finalresult"] = which.max(tabulate(match(i_classes, unique(i_classes))))
+  for (i in seq(1, nrow(pred5), 1)) {
+    i_classes = c(pred5[i, "pred2E"], pred5[i, "pred3E"], pred5[i, "pred4E"])
+    pred5[i, "finalresult"] = i_classes[which.max(tabulate(match(i_classes, unique(i_classes))))]
+  }
   accuracy = confusionMatrix(as.factor(pred5$finalresult), vald$Personal.Loan)$overall["Accuracy"]
   if (accuracy > maxaccuracy) {
     maxaccuracy = accuracy
@@ -193,37 +193,37 @@ for (threshold in seq(0, 0.6, 0.0001)) {
   }
 }
 
-print(bestthreshold) # 0.492
-print(maxaccuracy) # 0.988
+print(bestthreshold) # 0.544
+print(maxaccuracy) # 0.992
   
 # Evaluation of performance on unseen data (i.e. test data set)
 # with the accuracy arrived at the previous step
 
-threshold = 0.492
+threshold = 0.544
 pred2E = predict(RF2, newdata = test, type="prob")
 pred3E = predict(RF3, newdata = test, type="prob")
 pred4E = predict(boost4, test)
 
 pred5 = data.frame(ifelse(pred2E[,2]>threshold, 1, 0), ifelse(pred3E[,2]>threshold, 1, 0), ifelse(pred4E$prob[,2]>threshold, 1, 0))
 colnames(pred5) = c("pred2E", "pred3E", "pred4E")
-pred5$finalresult = pred5$pred2E
 
-for (i in nrow(pred5)) {
+
+for (i in seq(1, nrow(pred5), 1)) {
   i_classes = c(pred5[i, "pred2E"], pred5[i, "pred3E"], pred5[i, "pred4E"])
-  pred5[i, "finalresult"] = which.max(tabulate(match(i_classes, unique(i_classes))))
+  pred5[i, "finalresult"] = i_classes[which.max(tabulate(match(i_classes, unique(i_classes))))]
 }
 
 
-confusionMatrix(as.factor(pred5$finalresult), test$Personal.Loan)$overall["Accuracy"]
-# Accuracy: 0.992
+confusionMatrix(as.factor(pred5$finalresult), as.factor(test$Personal.Loan))$overall["Accuracy"]
+# Accuracy: 0.983
 
 table(as.factor(pred5$finalresult), test$Personal.Loan)
 #     0   1
-# 0 901   6
-# 1   2  92
+# 0 892  14
+# 1   3  91
 
-# On unseen data (test data set), for a threshold of 0.492, 
-# the model has performed very well; an Accuracy of 0.992 was obtained,
+# On unseen data (test data set), for a threshold of 0.544, 
+# the model has performed very well; an Accuracy of 0.983 was obtained,
 # although this is a slight reduction when compared to Model #5
 
 #------------------------------------------------------------------------------------
